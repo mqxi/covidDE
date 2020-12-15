@@ -192,10 +192,11 @@ while executer == True:
         # confirmation
         print('E-Mail sent! The ' + c +' time')
         c+=str(1)
-
+    else: 
+        # if not: no email sent
+        print('no email today') 
         #execute the process again, one day later 1440 seconds
-        sleep(1440)
+    sleep(1440)
         #protect my mail client from receiving this mail too often; decision taken based on errors while testing
-        if c == 3:
-            executer = False
-            
+    if c == 3:
+        executer = False
