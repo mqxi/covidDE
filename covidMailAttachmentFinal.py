@@ -36,14 +36,14 @@ file = open("***.txt",'r') # open txt file including the app password
 password = file.readline() #read the password
 file.close # closing the file
 
-
+# Diese Funktion generiert einen Plot (Graphen), welcher die Covid Fälle pro 100.000 EInwohner in ausgewählten Länder zeichnet
 def graph():
     #copied from https://towardsdatascience.com/visualizing-covid-19-data-beautifully-in-python-in-5-minutes-or-less-affc361b2c6a
 # Lädt und wählt folgende Daten aus aus einer csv Datei 
     df = pd.read_csv('https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv', parse_dates=['Date'])
     # Die Keys müssen englisch bleiben, da sonst nicht auf die Werte zugegriffen werden kann 
     countries = ['Canada', 'Germany', 'Switzerland', 'US', 'Australia', 'Kazakhstan']
-    # dataframe df wird erstellt und wählt nur die Länder aus, welche vorab angegeben wurden sind 
+    # Tabelle df wird erstellt und wählt nur die Länder aus, welche vorab angegeben wurden sind 
     df = df[df['Country'].isin(countries)]
 
 # erstellt einen Dataframe, in dem die Gesamtzahl der Fälle in unseren bestätigten Fällen, genesenen Fällen und Todesfälle zusammengefasst werden
@@ -53,16 +53,21 @@ def graph():
     df = df.pivot(index='Date', columns='Country', values='Cases')
     # die liste countries beinhaltet alle 
     countries = list(df.columns)
+    # unter der Variable covid wird die restet_index ausgeführt, welche den Index zurücksetzt
     covid = df.reset_index('Date')
+    # Der Index wird auf das Datum gesetzt, mit dem Zusatz Inplace welches die Tablle verändert
     covid.set_index(['Date'], inplace=True)
     covid.columns = countries
 
 # Calculating Rates per 100,000
-#numbers from the 8th of december 2020
+# numbers from the 8th of december 2020
     populations = {'Canada': 37885660, 'Germany': 83889154 , 'Switzerland': 8840818 , 'US': 331840730, 'Australia': 26096286, 'Kazakhstan':19171147 }
+    # copy kopiert die Tablle 'covid'
     percapita = covid.copy()
 
+# für jedes Land in der Liste percapita (columns = country)
     for country in list(percapita.columns):
+        # für jedes Land wir die pro Einwohnerwohner zahl berechnet und mit 100.000 mal genommen um pro 100.000 Einwohner zu bekommen
         percapita[country] = percapita[country]/populations[country]*100000
 
 # Generiert Farben und Style
@@ -70,22 +75,31 @@ def graph():
    #style sheet FiveThirtyEight
     plt.style.use('fivethirtyeight')
 
+# erstellt das Objekt Plot mit allen nötigen Variablen
     percapitaplot = percapita.plot(figsize=(12,8), color=list(colors.values()), linewidth=5, legend=False)
+    # stellt die Farbe grau für die Tabelle ein
     percapitaplot.grid(color='#d4d4d4')
+    # setzt der X-Achse die Überschrift Datum
     percapitaplot.set_xlabel('Datum')
+    # setzt der y-achse die Überschrift Fälle pro 100.000 Einwohner
     percapitaplot.set_ylabel('Fälle pro 100.000 Einwohner')
 
+# für jeden land in der Farben liste
     for country in list(colors.keys()):
+        # wird der Text erstellt und an die richtige Position mit der ausgewählten Farbe etc. gebracht
         percapitaplot.text(x = percapita.index[-1], y = percapita[country].max(), color = colors[country], s = country, weight = 'bold')
         
+    # Location der Texte zur Beschreibung werden festgelegt mit styles und Inhalt erstellt
     percapitaplot.text(x = percapita.index[1], y = percapita.max().max()+100, s = "Fälle pro 100.000 Einwohner", fontsize = 23, weight = 'bold', alpha = .75)
+     # Location der Texte zur Beschreibung werden festgelegt mit styles und Inhalt erstellt
     percapitaplot.text(x = percapita.index[1], y = percapita.max().max()+500, s = "Für: USA, Kasachstan, Deutschland, Schweiz, Australien und Kanada\n Beinhaltet die Summe aktueller Fälle, genesene Fälle und Todesfälle je Monat seit Februar 2020", fontsize = 16, alpha = .75)
+     # Location der Texte zur Beschreibung werden festgelegt mit styles und Inhalt erstellt
     percapitaplot.text(x = percapita.index[1], y = -1400,s = 'Source: https://github.com/datasets/covid-19/blob/master/data/countries-aggregated.csv', fontsize = 10)
     
-    
+    # speichert den Plot als PDF
     plt.savefig('covidgraph.pdf')
 
-
+# function the create the email body and head also connect to the ssl server 
 def body (confirmed_cases,recovered_cases,deaths,time):
 
     message = MIMEMultipart() # Multipart braucht man um html, text und ein Anhängsel als Content zusammen zu verwenden
@@ -128,12 +142,13 @@ def body (confirmed_cases,recovered_cases,deaths,time):
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver_email, message.as_string())
     
+# has to check if attachment is inluded to the email body or not 
 def check():
      #Problem: Wie kann ich eine if Bedingung erstellen, welche vergleicht, ob heute der 1. des Monats ist
    # compare the current datetime and the date of the current day
    # if its the first, it continues
        #dont know if its actually working
-    if timeNowString == timeNowString.startswith('1') :
+    if timeNowString == timeNowString.startswith('01') :
         
         file = "covidgraph.pdf"
 
@@ -167,7 +182,8 @@ while executer == True:
         #Problem and idea are described in line 9 to 10
          #implement an counter
     c=str(0)
-    if numRecovered > numDeaths :
+    #triggers if number of Deaths is bigger than the number of recovereds
+    if numRecovered < numDeaths :
        
         #execute the needed functions
         print('create Text message')
